@@ -72,6 +72,29 @@ public class DivByZeroTransfer extends CFTransfer {
             AnnotationMirror lhs,
             AnnotationMirror rhs) {
         // TODO
+        if (operator.equals(Comparison.NE)){
+            if (equal(rhs, reflect(Zero.class))) return glb(lhs, reflect(NonZero.class));
+            else if (equal(rhs, reflect(NonZero.class))) return glb(lhs, reflect(Zero.class));
+            return lhs;
+        } 
+        else if (operator.equals(Comparison.EQ)){
+            return glb(lhs, rhs);
+        } 
+        else if (operator.equals(Comparison.LT)){
+            if(equal(rhs, reflect(Zero.class)) || equal(rhs, reflect(Negative.class))) return glb(lhs, reflect(Negative.class));
+            return lhs; 
+        } 
+        else if (operator.equals(Comparison.LE)){
+            if (equal(rhs, reflect(Negative.class))) return glb(lhs, reflect(Negative.class));
+            return lhs;
+        }
+        else if (operator.equals(Comparison.GT)){
+            if(equal(rhs, reflect(Positive.class)) || equal(rhs, reflect(Zero.class))) return glb(lhs, reflect(Positive.class));
+            return lhs;
+        } 
+        else if(equal(rhs, reflect(Positive.class))){ // GE
+            return glb(lhs, reflect(Positive.class));
+        }
         return lhs;
     }
 
@@ -94,6 +117,61 @@ public class DivByZeroTransfer extends CFTransfer {
             AnnotationMirror lhs,
             AnnotationMirror rhs) {
         // TODO
+        if(operator.equals(BinaryOperator.PLUS)){
+            if(equal(lhs, reflect(Zero.class))) return rhs;
+            else if (equal(rhs, reflect(Zero.class))) return lhs;
+            else if(equal(lhs, reflect(NonZero.class))  || equal(rhs, reflect(NonZero.class))) return top();
+            else if (equal(lhs, rhs)) return lhs;
+            return top();
+        } 
+        else if (operator.equals(BinaryOperator.MINUS)){
+            if (equal(lhs, reflect(Zero.class))){
+                // Need to switch sign
+                if(equal(rhs, reflect(Positive.class))) return reflect(Negative.class);
+                else if (equal(rhs, reflect(Negative.class))) return reflect(Positive.class);
+                else if (equal(rhs, reflect(Zero.class))) return reflect(Zero.class);
+                else if(equal(rhs, reflect(NonZero.class)))return reflect(NonZero.class);
+                else return top();
+            }
+            else if (equal(rhs, reflect(Zero.class))) return lhs;
+            else if(equal(lhs, reflect(NonZero.class)) || equal(rhs, reflect(NonZero.class))) return top();
+            else if (equal(lhs, rhs)) return top();
+            else if (equal(lhs, reflect(Positive.class))) return reflect(Positive.class);
+            else if(equal(lhs, reflect(Negative.class))) return reflect(Negative.class);
+            return top();
+        } 
+        else if (operator.equals(BinaryOperator.TIMES)){
+            if (equal(lhs, reflect(Zero.class))) return reflect(Zero.class); // if one is 0
+            else if (equal(rhs, reflect(Zero.class))) return reflect(Zero.class); // will return LHS class, or 0 if they r both 0
+            else if(equal(lhs, reflect(NonZero.class)) || equal(rhs, reflect(NonZero.class))) return reflect(NonZero.class);
+            else if (equal(lhs, rhs)) return reflect(Positive.class);
+
+            return reflect(Negative.class);
+        } 
+        else if(operator.equals(BinaryOperator.DIVIDE)){
+            if(equal(rhs, reflect(Zero.class))){
+                return top();
+            }
+            else if (equal(lhs, reflect(Zero.class))){
+                return reflect(Zero.class);
+            } 
+            else if(equal(lhs, reflect(NonZero.class)) || equal(rhs, reflect(NonZero.class))) return reflect(NonZero.class);
+            else if(equal(lhs, rhs)) return reflect(Positive.class); 
+            return reflect(Negative.class);
+        }
+        else if(operator.equals(BinaryOperator.MOD)){
+            if(equal(rhs, reflect(Zero.class))){
+                return top();
+            }
+            else if (equal(lhs, reflect(Zero.class))){
+                return reflect(Zero.class);
+            } 
+            else if(equal(lhs, reflect(NonZero.class)) || equal(rhs, reflect(NonZero.class))) return reflect(NonZero.class);
+            else if(equal(lhs, rhs)) return reflect(Positive.class); 
+            else if (equal(rhs, reflect(Negative.class))) return reflect(Negative.class);
+            return reflect(Positive.class);
+        }
+
         return top();
     }
 
